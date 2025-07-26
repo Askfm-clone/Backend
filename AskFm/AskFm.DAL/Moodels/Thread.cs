@@ -14,6 +14,7 @@ public class Thread
     public virtual User? Asker { get; set; }
 
     public int AskedId { get; set; }
+    public int ZiadaId { get; set; }
     public virtual User? Asked { get; set; }
 
     public virtual ICollection<Comment>? Comments { get; set; }
