@@ -22,4 +22,6 @@ public class ThreadResponseDto
     public int AskedId { get; set; }
     
     public string AskedName { get; set; }
+
+    public string answer;
 }

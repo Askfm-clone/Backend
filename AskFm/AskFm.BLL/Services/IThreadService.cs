@@ -6,4 +6,5 @@ public interface IThreadService
 {
     Task<ServiceResult<ThreadResponseDto>> AddThread(int userId, CreateThreadDto createThreadDto);
     Task<ServiceResult<List<ThreadResponseDto>>> GetAllThreads(int userId);
+    Task<ServiceResult<ThreadResponseDto>> AnswerThread(ThreadAnswerDto threadAnswerDto);
 }

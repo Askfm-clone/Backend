@@ -29,7 +29,7 @@ public class ThreadController : ControllerBase
     
     // POST api/threads/ - Ask a question
     [HttpPost]
-    [Route("thread")]
+    [Route("threads")]
     public async Task<IActionResult>  AskQuestion(CreateThreadDto createThreadDto)
     {
         // Asker Id -> Current User
@@ -51,6 +51,7 @@ public class ThreadController : ControllerBase
     }
 
 
+    // get all threads for user by user id
     [HttpGet]
     [Route("thread/{id}")]
     public async Task<IActionResult> GetAllThreads([FromRoute] int id)
@@ -66,11 +67,12 @@ public class ThreadController : ControllerBase
     // GET api/threads/{id} - Getting the Thread with id = {id}
 
     [HttpGet]
-    [Route("thread/{id}")]
+    [Route("threads/{id}")]
     void GetThreadWithId([FromRoute] string id)
     {
         
     }
+
     
     // PUT api/threads/{id}/answer - Add an Answer on the thread with id = {id}
     [HttpPut]
