@@ -84,7 +84,7 @@ public class ThreadService : IThreadService
             await _unitOfWork.Users.UpdateAsync(askerUser);
             await _unitOfWork.SaveAsync();
 
-            transaction.Commit();
+            await transaction.CommitAsync();
 
             var responseDto = new ThreadResponseDto
             {
@@ -150,7 +150,7 @@ public class ThreadService : IThreadService
         try
         {
             // get thread
-            var threadId = threadAnswerDto.threadId;
+            var threadId = threadAnswerDto.ThreadId;
             var thread = await _unitOfWork.Threads.GetByIdAsync(threadId);
             // chekc if thread
             if (thread == null)
@@ -158,7 +158,7 @@ public class ThreadService : IThreadService
                 return await ServiceResult<ThreadResponseDto>.Failure(new List<string>() { "Could not find thread" });
             }
             // put the answer on it
-            thread.AnswerContent = threadAnswerDto.answer;
+            thread.AnswerContent = threadAnswerDto.Answer;
             // save changes
             await _unitOfWork.Threads.UpdateAsync(thread);
             await _unitOfWork.SaveAsync();

@@ -2,7 +2,7 @@ namespace AskFm.BLL.DTO;
 
 public class ThreadAnswerDto
 {
-    public int threadId;
-    public string answer;
+    public int ThreadId {get;set;}
+    public string Answer {get;set;}
     
 }
