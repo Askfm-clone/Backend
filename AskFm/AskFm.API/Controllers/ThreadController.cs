@@ -83,7 +83,6 @@ public class ThreadController : ControllerBase
     }
 
     // POST api/threads/{id}/likes - Add a Like to the thread with id = {id}
-    
     // GET api/threads/{id}/likes - Get all the Likes to the thread with id = {id}
     // DELETE api/threads/{id}/likes - Unlike to the thread with id = {id}
 

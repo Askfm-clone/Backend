@@ -50,6 +50,7 @@ public class Program
                 .UseSqlServer(ConnectionString));
         // -------------------------------------------------        
         // Register the repositories and services
+        builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
         builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
         builder.Services.AddScoped<INotificationService, NotificationService>();
