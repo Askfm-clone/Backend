@@ -13,10 +13,11 @@ public class ThreadLikeService : IThreadLikeService
     private readonly ILogger<CommentLikeService> _logger;
     private readonly IMapper _mapper;
 
-    public ThreadLikeService(IUnitOfWork unitOfWork, ILogger<CommentLikeService> logger)
+    public ThreadLikeService(IUnitOfWork unitOfWork, ILogger<CommentLikeService> logger, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _logger = logger;
+        _mapper = mapper;
     }
 
     // add a like on the Thread that has id = id
@@ -55,6 +56,7 @@ public class ThreadLikeService : IThreadLikeService
 
                 // otherwise , the user liked the comment , then unliked it , and then wants to like it again
                 existingLike.IsDeleted = false;
+                existingLike.CreatedAt = DateTime.Now;
                 thread.ThreadLikes.Add(existingLike);
                 _unitOfWork.Threads.Update(thread);
                 await _unitOfWork.SaveAsync();
@@ -64,7 +66,6 @@ public class ThreadLikeService : IThreadLikeService
 
 
                 // updating the createdAt column to Now , ignoring the first time the user liked the comment
-                existingLike.CreatedAt = DateTime.Now;
                 return await ServiceResult<ThreadLikeResponseDto>.Success(new ThreadLikeResponseDto()
                 {
                     threadId = existingLike.ThreadId,

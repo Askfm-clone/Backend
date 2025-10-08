@@ -1,10 +1,18 @@
 using AskFm.BLL.DTO;
-using Thread = AskFm.DAL.Models.Thread;
+using Microsoft.AspNetCore.Mvc;
 
 namespace AskFm.BLL.Services;
+
 public interface IThreadService
 {
-    Task<ServiceResult<ThreadResponseDto>> AddThread(int userId, CreateThreadDto createThreadDto);
-    Task<ServiceResult<List<ThreadResponseDto>>> GetAllThreads(int userId);
-    Task<ServiceResult<ThreadResponseDto>> AnswerThread(ThreadAnswerDto threadAnswerDto);
+    public Task<ServiceResult<ThreadResponseDto>> AddThread(int askerId, CreateThreadDto createThreadDto);
+    public Task<ServiceResult<ThreadResponseDto>> GetThreadById(int id);
+    public Task<ServiceResult<List<ThreadResponseDto>>> GetAllThreads(int askedId);
+    public Task<ServiceResult<ThreadResponseDto>> AnswerThread(int threadId, int userId, AnswerThreadDto answerDto);
+    public Task<ServiceResult<PagedResponseDto<ThreadResponseDto>>> GetThreads(int page, int pageSize);
+    public Task<ServiceResult<bool>> DeleteThread(int threadId, int userId);
+    public Task<ServiceResult<PagedResponseDto<ThreadResponseDto>>> GetFeed(int userId, int page, int pageSize);
+    public Task<ServiceResult<bool>> SaveThread(int threadId, int userId);
+    public Task<ServiceResult<bool>> UnsaveThread(int threadId, int userId);
+    public Task<ServiceResult<PagedResponseDto<ThreadResponseDto>>> GetSavedThreads(int userId, int page, int pageSize);
 }

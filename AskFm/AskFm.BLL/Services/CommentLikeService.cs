@@ -4,7 +4,6 @@ using AskFm.DAL.Interfaces;
 using AskFm.DAL.Models;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualBasic;
 
 namespace AskFm.BLL.Services;
 
@@ -111,6 +110,7 @@ public class CommentLikeService :  ICommentLikeService
                     // otherwise , the user liked the comment , then unliked it , and then wants to like it again
                     existingLike.IsDeleted = false;
                     comment.LikeCount++;
+                    existingLike.CreatedAt = DateTime.Now;
                     _unitOfWork.Comments.Update(comment);
                     await _unitOfWork.SaveAsync();
                     await transaction.CommitAsync();
@@ -119,7 +119,6 @@ public class CommentLikeService :  ICommentLikeService
                     
                     
                     // updating the createdAt column to Now , ignoring the first time the user liked the comment
-                    existingLike.CreatedAt = DateTime.Now;
                     return await ServiceResult<CommentLikeDto>.Success(new CommentLikeDto
                     {
                         CommentId = existingLike.CommentId,
