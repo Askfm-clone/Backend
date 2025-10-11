@@ -12,12 +12,12 @@ namespace AskFm.API.Controllers;
 [Authorize(AuthenticationSchemes = "Bearer")]
 public class ThreadLikeController : ControllerBase
 {
-    private readonly ILogger<CommentController> _logger;
+    private readonly ILogger<ThreadLikeController> _logger;
     private readonly IUserService _userService;
     private readonly IThreadLikeService _threadLikeService;
 
     public ThreadLikeController(
-        ILogger<CommentController> logger,
+        ILogger<ThreadLikeController> logger,
         IUserService userService,
         IThreadLikeService threadService)
     {

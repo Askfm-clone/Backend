@@ -170,7 +170,7 @@ public class UserService : IUserService
         await using var  transaction = await _unitOfWork.BeginTransactionAsync();
         try
         {
-            appUser.LastSeen = DateTime.Now;
+            appUser.LastSeen = DateTime.UtcNow;
             await _unitOfWork.Users.UpdateAsync(appUser);
             await _unitOfWork.SaveAsync();
             await transaction.CommitAsync();

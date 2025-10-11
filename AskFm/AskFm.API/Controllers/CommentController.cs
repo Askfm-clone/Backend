@@ -13,13 +13,11 @@ namespace AskFm.API.Controllers;
 [Authorize(AuthenticationSchemes = "Bearer")]
 public class CommentController : ControllerBase
 {
-    
     private readonly ICommentLikeService _commentLikeService;
     private readonly ICommentService _commentService;
     private readonly ILogger<CommentController> _logger;
     private readonly IUserService _userService;
-    
-    
+
     public CommentController(
         ICommentLikeService commentLikeService,
         ICommentService commentService,
@@ -31,11 +29,7 @@ public class CommentController : ControllerBase
         _commentService = commentService;
         _userService = userService;
     }
-    
-    
-    
-    
-    
+
     // GET api/comment/{id}/likes -> get all the likes for a Comment with id = id
     [HttpGet("{id}/likes")]
     public async Task<IActionResult> GetAllLikes(int id)
@@ -55,7 +49,6 @@ public class CommentController : ControllerBase
             return NotFound(new
             {
                 message = ex.Message,
-                
             });
         }
         catch (Exception ex)
@@ -65,9 +58,6 @@ public class CommentController : ControllerBase
         }
     }
     
-    
-    
-    
     // POST api/comment/{id}/likes -> add a like for a Comment with id = id
     [HttpPost("{id}/likes")]
     public async Task<IActionResult> AddLike(int id)
@@ -75,21 +65,21 @@ public class CommentController : ControllerBase
         try
         {
             var user = await _userService.GetCurrentUserAsync();
-            
+
             if (!user.success)
             {
                 return BadRequest(user.Errors);
             }
-            
+
             var createdLike = await _commentLikeService.AddLikeAsync(id, user.Data.Id);
-            
+
             if (!createdLike.success)
             {
                 return BadRequest(createdLike.Errors);
             }
             return CreatedAtAction(
-                nameof(GetAllLikes), 
-                new { id = id }, 
+                nameof(GetAllLikes),
+                new { id = id },
                 createdLike.Data);
         }
         catch (ArgumentException ex)
@@ -108,37 +98,31 @@ public class CommentController : ControllerBase
             return StatusCode(500, new { message = "An error occurred while adding like" });
         }
     }
-    
-    
-    
-    
+
     [HttpDelete("{id}/likes")]
     public async Task<IActionResult> DeleteLike(int id)
     {
         int userId = 0;
         try
         {
-            
             var user = await _userService.GetCurrentUserAsync();
 
-            if (user==null || !user.success)
+            if (user == null || !user.success)
                 return BadRequest(user.Errors);
-            
-            
+
             userId = user.Data.Id;
             var comment = await _commentService.GetCommentAsync(id);
-            
+
             if (comment == null || !user.success)
                 return BadRequest(user.Errors);
-            
-            
+
             var result = await _commentLikeService.DeleteLikeAsync(id, userId);
 
             if (!result.success)
             {
                 return BadRequest(result.Errors);
             }
-            
+
             return NoContent();
         }
         catch (ArgumentException ex)
@@ -157,5 +141,58 @@ public class CommentController : ControllerBase
             return StatusCode(500, new { message = "An error occurred while deleting like" });
         }
     }
-    
+
+    // POST api/threads/{id}/comments - Add a comment to the thread with id = {id}
+    [HttpPost]
+    [Route("threads/{id}/comments")]
+    public async Task<IActionResult> AddComment([FromRoute] int id, [FromBody] CreateCommentDto createCommentDto)
+    {
+        var user = await _userService.GetCurrentUserAsync();
+        if (!user.success)
+        {
+            return BadRequest(user.Errors);
+        }
+
+        var result = await _commentService.AddComment(id, user.Data.Id, createCommentDto);
+        if (!result.success)
+        {
+            return BadRequest(result.Errors);
+        }
+
+        return Ok(result.Data);
+    }
+
+    // GET api/threads/{id}/comments - Get all comments for the thread with id = {id}
+    [HttpGet]
+    [Route("threads/{id}/comments")]
+    public async Task<IActionResult> GetComments([FromRoute] int id, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    {
+        var result = await _commentService.GetCommentsByThreadId(id, page, pageSize);
+        if (!result.success)
+        {
+            return BadRequest(result.Errors);
+        }
+
+        return Ok(result.Data);
+    }
+
+    // DELETE api/threads/{threadId}/comments/{commentId} - Delete a comment with id = {commentId}
+    [HttpDelete]
+    [Route("threads/{threadId}/comments/{commentId}")]
+    public async Task<IActionResult> DeleteComment([FromRoute] int threadId, [FromRoute] int commentId)
+    {
+        var user = await _userService.GetCurrentUserAsync();
+        if (!user.success)
+        {
+            return BadRequest(user.Errors);
+        }
+
+        var result = await _commentService.DeleteComment(threadId, commentId, user.Data.Id);
+        if (!result.success)
+        {
+            return BadRequest(result.Errors);
+        }
+
+        return Ok(new { message = "Comment deleted successfully" });
+    }
 }

@@ -56,7 +56,7 @@ public class ThreadLikeService : IThreadLikeService
 
                 // otherwise , the user liked the comment , then unliked it , and then wants to like it again
                 existingLike.IsDeleted = false;
-                existingLike.CreatedAt = DateTime.Now;
+                existingLike.CreatedAt = DateTime.UtcNow;
                 thread.ThreadLikes.Add(existingLike);
                 _unitOfWork.Threads.Update(thread);
                 await _unitOfWork.SaveAsync();
@@ -68,9 +68,9 @@ public class ThreadLikeService : IThreadLikeService
                 // updating the createdAt column to Now , ignoring the first time the user liked the comment
                 return await ServiceResult<ThreadLikeResponseDto>.Success(new ThreadLikeResponseDto()
                 {
-                    threadId = existingLike.ThreadId,
-                    userId = existingLike.UserId,
-                    createdAt = existingLike.CreatedAt
+                    ThreadId = existingLike.ThreadId,
+                    UserId = existingLike.UserId,
+                    CreatedAt = existingLike.CreatedAt
                 });
             }
 
@@ -82,7 +82,7 @@ public class ThreadLikeService : IThreadLikeService
                 {
                     ThreadId = id,
                     UserId = userId,
-                    CreatedAt = DateTime.Now
+                    CreatedAt = DateTime.UtcNow
                 };
 
                 // add the ThreadLike to the Thread
@@ -97,9 +97,9 @@ public class ThreadLikeService : IThreadLikeService
                 // create and return the response DTO
                 var response = new ThreadLikeResponseDto
                 {
-                    threadId = threadLike.ThreadId,
-                    userId = threadLike.UserId,
-                    createdAt = threadLike.CreatedAt
+                    ThreadId = threadLike.ThreadId,
+                    UserId = threadLike.UserId,
+                    CreatedAt = threadLike.CreatedAt
                 };
 
                 return await ServiceResult<ThreadLikeResponseDto>.Success(response);
@@ -136,10 +136,10 @@ public class ThreadLikeService : IThreadLikeService
             // return the list of likes
             var likes = thread.ThreadLikes.Select(like => new ThreadLikeResponseDto
             {
-                threadId = like.ThreadId,
-                userId = like.UserId,
+                ThreadId = like.ThreadId,
+                UserId = like.UserId,
                 UserName = like.User?.Name ?? "Unknown",
-                createdAt = like.CreatedAt
+                CreatedAt = like.CreatedAt
             }).ToList();
 
             return await ServiceResult<List<ThreadLikeResponseDto>>.Success(likes);

@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using AskFm.DAL.Interfaces;
 using Microsoft.EntityFrameworkCore;
+
 namespace AskFm.DAL.Repositories;
 
 public class Repository<T> : IRepository<T> where T : class
@@ -15,17 +16,12 @@ public class Repository<T> : IRepository<T> where T : class
     }
 
 
-
     public IQueryable<T> GetAll() => _dbSet.AsQueryable();
     public async Task<IEnumerable<T>> GetAllAsync() => await _dbSet.ToListAsync();
 
 
-
-
     public T? GetById(int id) => _dbSet.Find(id);
     public async Task<T?> GetByIdAsync(int id) => await _dbSet.FindAsync(id);
-
-
 
 
     public IQueryable<T> FindAll(Expression<Func<T, bool>> predicate, string[] includes = null)
@@ -36,6 +32,7 @@ public class Repository<T> : IRepository<T> where T : class
             foreach (var include in includes)
                 query = query.Include(include);
         }
+
         return query.Where(predicate);
     }
 
@@ -49,9 +46,6 @@ public class Repository<T> : IRepository<T> where T : class
 
         return await query.Where(predicate).ToListAsync();
     }
-
-
-
 
 
     public T? Find(Expression<Func<T, bool>> predicate, string[] includes = null)
@@ -85,13 +79,9 @@ public class Repository<T> : IRepository<T> where T : class
     }
 
 
-
-
     public void Add(T entity) => _dbSet.Add(entity);
 
     public async Task AddAsync(T entity) => await _dbSet.AddAsync(entity);
-
-
 
 
     public void Update(T entity) => _dbSet.Update(entity);
@@ -104,7 +94,7 @@ public class Repository<T> : IRepository<T> where T : class
 
 
     public void Remove(T entity) => _dbSet.Remove(entity);
-    
+
     public Task RemoveAsync(T entity)
     {
         _dbSet.Remove(entity);
@@ -131,6 +121,10 @@ public class Repository<T> : IRepository<T> where T : class
         Expression<Func<T, bool>>? predicate = null,
         string[]? includes = null)
     {
+        if (skip < 0)
+            throw new ArgumentOutOfRangeException(nameof(skip), "Skip must be non-negative");
+        if (take <= 0)
+            throw new ArgumentOutOfRangeException(nameof(take), "Take must be positive");
         IQueryable<T> query = _dbSet;
 
         if (predicate != null)

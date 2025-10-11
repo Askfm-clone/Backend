@@ -1,5 +1,4 @@
 using AskFm.BLL.DTO;
-using Microsoft.AspNetCore.Mvc;
 
 namespace AskFm.BLL.Services;
 

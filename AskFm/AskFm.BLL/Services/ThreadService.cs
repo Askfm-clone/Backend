@@ -77,7 +77,7 @@ public class ThreadService : IThreadService
                 AnswerContent = "",
                 Status = createThreadDto.Status,
                 isAnonymous = createThreadDto.isAnonymous,
-                CreatedAt = DateTime.Now,
+                CreatedAt = DateTime.UtcNow,
             };
 
             await _unitOfWork.Threads.AddAsync(thread);
@@ -424,7 +424,7 @@ public class ThreadService : IThreadService
             {
                 SavedThreadId = threadId,
                 UserId = userId,
-                CreatedAt = DateTime.Now
+                CreatedAt = DateTime.UtcNow
             };
 
             // Add saved thread

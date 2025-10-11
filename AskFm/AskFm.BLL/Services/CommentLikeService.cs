@@ -110,7 +110,7 @@ public class CommentLikeService :  ICommentLikeService
                     // otherwise , the user liked the comment , then unliked it , and then wants to like it again
                     existingLike.IsDeleted = false;
                     comment.LikeCount++;
-                    existingLike.CreatedAt = DateTime.Now;
+                    existingLike.CreatedAt = DateTime.UtcNow;
                     _unitOfWork.Comments.Update(comment);
                     await _unitOfWork.SaveAsync();
                     await transaction.CommitAsync();
