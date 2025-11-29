@@ -76,7 +76,7 @@ public class ThreadService : IThreadService
 
                 AnswerContent = "",
                 Status = createThreadDto.Status,
-                isAnonymous = createThreadDto.isAnonymous,
+                isAnonymous = createThreadDto.IsAnonymous,
                 CreatedAt = DateTime.UtcNow,
             };
 
@@ -97,9 +97,9 @@ public class ThreadService : IThreadService
                 IsAnonymous = thread.isAnonymous,
                 CreatedAt = thread.CreatedAt,
                 AskerId = thread.AskerId.Value,
-                AskerName = thread.Asker?.Name ?? "Unknown",
+                AskerName = thread.isAnonymous ? "Anonymous" : thread.Asker?.Name,
                 AskedId = thread.AskedId,
-                AskedName = thread.Asked?.Name ?? "Unknown"
+                AskedName = askedUser.Name
             };
 
             return await ServiceResult<ThreadResponseDto>.Success(responseDto);
@@ -116,7 +116,7 @@ public class ThreadService : IThreadService
         try
         {
             var thread = await _unitOfWork.Threads.FindAsync(
-                predicate: t => t.Id == id,
+                predicate: t => t.Id == id && !t.IsDeleted,
                 includes: new[] { "Asker", "Asked", "Comments", "ThreadLikes" }
             );
 
@@ -197,6 +197,21 @@ public class ThreadService : IThreadService
 
         try
         {
+            if (string.IsNullOrWhiteSpace(answerDto.AnswerContent))
+            {
+                await transaction.RollbackAsync();
+                return await ServiceResult<ThreadResponseDto>.Failure(
+                    new List<string> { "Answer cannot be empty or contain only whitespace" });
+            }
+
+            var trimmedAnswer = answerDto.AnswerContent.Trim();
+            if (trimmedAnswer.Length > 5000)
+            {
+                await transaction.RollbackAsync();
+                return await ServiceResult<ThreadResponseDto>.Failure(
+                    new List<string> { "Answer cannot exceed 5000 characters" });
+            }
+            
             var thread = await _unitOfWork.Threads.FindAsync(
                 predicate: t => t.Id == threadId,
                 includes: new[] { "Asker", "Asked" }
@@ -234,6 +249,8 @@ public class ThreadService : IThreadService
                 AskerId = thread.AskerId ?? 0,
                 AskerName = thread.isAnonymous ? "Anonymous" : thread.Asker?.Name,
                 AskedId = thread.AskedId,
+                LikesCount = thread.ThreadLikes?.Count ?? 0,
+                CommentsCount = thread.Comments?.Count ?? 0,
                 AskedName = thread.Asked?.Name
             };
 
@@ -253,18 +270,22 @@ public class ThreadService : IThreadService
         {
             int skipCount = (page - 1) * pageSize;
 
-            var totalCount = await _unitOfWork.Threads.CountAsync();
+            // var totalCount = await _unitOfWork.Threads.CountAsync();
 
             var threads = await _unitOfWork.Threads.GetPagedAsync(
                 skipCount,
-                pageSize,
+                pageSize + 1,
                 t => t.CreatedAt,
                 false,
                 t => true,
                 new[] { "Asker", "Asked", "Comments", "ThreadLikes" }
             );
+            
+            bool hasMore = threads.Count > pageSize;
 
-            var threadDtos = threads.Select(thread => new ThreadResponseDto
+            var trimmed = threads.Take(pageSize).ToList();
+            
+            var threadDtos = trimmed.Select(thread => new ThreadResponseDto
             {
                 Id = thread.Id,
                 QuestionContent = thread.QuestionContent,
@@ -285,8 +306,8 @@ public class ThreadService : IThreadService
                 Items = threadDtos,
                 PageNumber = page,
                 PageSize = pageSize,
-                TotalCount = totalCount,
-                TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+                HasMore = hasMore
+
             };
 
             return await ServiceResult<PagedResponseDto<ThreadResponseDto>>.Success(response);
@@ -353,14 +374,24 @@ public class ThreadService : IThreadService
 
             var threads = await _unitOfWork.Threads.GetPagedAsync(
                 skipCount,
-                pageSize,
+                pageSize + 1,
                 t => t.CreatedAt,
                 false,
                 t => followedUserIds.Contains(t.AskedId) && t.Status == ThreadStatus.Answered,
                 new[] { "Asker", "Asked", "Comments", "ThreadLikes" }
             );
+            
+            // asking if still  there is some remaining pages withou using COUNT() 
+            bool hasMore = threads.Count > pageSize;
 
-            var threadDtos = threads.Select(thread => new ThreadResponseDto
+            /* after getting the threads with size of pageSize + 1
+             to find if there are remaining threads (nextPage) without usint TotalCound and totalPages
+             now we need to return back only the PageSize of threads
+             that what i'm doing here in the trimmed list, 
+             */
+            var trimmed = threads.Take(pageSize).ToList();
+            
+            var threadDtos = trimmed.Select(thread => new ThreadResponseDto
             {
                 Id = thread.Id,
                 QuestionContent = thread.QuestionContent,
@@ -381,8 +412,7 @@ public class ThreadService : IThreadService
                 Items = threadDtos,
                 PageNumber = page,
                 PageSize = pageSize,
-                TotalCount = totalCount,
-                TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+                HasMore = hasMore
             };
 
             return await ServiceResult<PagedResponseDto<ThreadResponseDto>>.Success(response);
@@ -483,18 +513,28 @@ public class ThreadService : IThreadService
         {
             int skipCount = (page - 1) * pageSize;
 
-            var totalCount = await _unitOfWork.SavedThreads.CountAsync(st => st.UserId == userId);
+            // var totalCount = await _unitOfWork.SavedThreads.CountAsync(st => st.UserId == userId);
 
             var savedThreads = await _unitOfWork.SavedThreads.GetPagedAsync(
                 skipCount,
-                pageSize,
+                pageSize + 1,
                 st => st.CreatedAt,
                 false,
                 st => st.UserId == userId,
                 new[] { "Thread", "Thread.Asker", "Thread.Asked", "Thread.Comments", "Thread.ThreadLikes" }
             );
 
-            var threadDtos = savedThreads.Select(st => new ThreadResponseDto
+            
+            bool hasMore = savedThreads.Count > pageSize;
+            
+            /* after getting the threads with size of pageSize + 1
+             to find if there are remaining threads (nextPage) without usint TotalCound and totalPages
+             now we need to return back only the PageSize of threads
+             that what i'm doing here in the trimmed list,
+            */
+            var trimmed = savedThreads.Take(pageSize).ToList();
+            
+            var threadDtos = trimmed.Select(st => new ThreadResponseDto
             {
                 Id = st.Thread.Id,
                 QuestionContent = st.Thread.QuestionContent,
@@ -516,8 +556,7 @@ public class ThreadService : IThreadService
                 Items = threadDtos,
                 PageNumber = page,
                 PageSize = pageSize,
-                TotalCount = totalCount,
-                TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+                HasMore = hasMore
             };
 
             return await ServiceResult<PagedResponseDto<ThreadResponseDto>>.Success(response);

@@ -132,20 +132,23 @@ public class CommentService : ICommentService
                 return await ServiceResult<PagedResponseDto<CommentResponseDto>>.Failure(new List<string>() { "Thread not found" });
             }
 
-            // Get total count of comments for this thread
-            var totalCount = await _unitOfWork.Comments.CountAsync(c => c.ThreadId == threadId);
-
+            
+            int skip =  (page - 1) * pageSize;
             // Get paginated comments
             var comments = await _unitOfWork.Comments.GetPagedAsync(
-                skip: (page - 1) * pageSize,
-                take: pageSize,
+                skip: skip,
+                take: pageSize + 1,
                 orderBy: c => c.CreatedAt,
                 ascending: false,  // Newest first
                 predicate: c => c.ThreadId == threadId,
                 includes: new[] { "User", "CommentLikes" }
             );
+            
+            bool hasMore = comments.Count > pageSize;
 
-            var commentDtos = comments.Select(c => new CommentResponseDto
+            var trimmed = comments.Take(pageSize).ToList();
+
+            var commentDtos = trimmed.Select(c => new CommentResponseDto
             {
                 Id = c.Id,
                 Content = c.Content,
@@ -162,8 +165,7 @@ public class CommentService : ICommentService
                 Items = commentDtos,
                 PageNumber = page,
                 PageSize = pageSize,
-                TotalCount = totalCount,
-                TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+                HasMore = hasMore
             };
 
             return await ServiceResult<PagedResponseDto<CommentResponseDto>>.Success(response);

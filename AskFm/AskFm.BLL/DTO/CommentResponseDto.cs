@@ -9,5 +9,4 @@ public class CommentResponseDto
     public int ThreadId { get; set; }
     public DateTime CreatedAt { get; set; }
     public int LikesCount { get; set; }
-    public bool IsLiked { get; set; }
 }
