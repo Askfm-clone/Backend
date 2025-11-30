@@ -10,19 +10,16 @@ public class NotificationConfigration : IEntityTypeConfiguration<Notification>
     {
         builder.HasKey(n => n.Id);
 
-        builder.Property(n => n.jsonContent)
+        builder.Property(n => n.Message)
             .HasColumnType("NVARCHAR");
 
-        builder.Property(n => n.isRead)
+        builder.Property(n => n.IsRead)
             .IsRequired();
-
-        builder.Property(n => n.CreatedAt)
-            .HasColumnType("datetime")
-            .IsRequired();
+        
 
         builder.HasOne(n => n.User)
             .WithMany(u => u.Notifications)
             .HasForeignKey(n => n.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }
