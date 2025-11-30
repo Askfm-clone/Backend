@@ -4,5 +4,7 @@ public enum ThreadStatus
     PRIVATE,
     PUBLIC,
     Closed,
-    PRIVATEQUESTION
+    PRIVATEQUESTION,
+    Answered,
+    Pending
 }

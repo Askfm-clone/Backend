@@ -50,12 +50,15 @@ public class Program
                 .UseSqlServer(ConnectionString));
         // -------------------------------------------------        
         // Register the repositories and services
+        builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
         builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
         builder.Services.AddScoped<INotificationService, NotificationService>();
 
         builder.Services.AddScoped<IAuthService, AuthService>();
         builder.Services.AddScoped<IUserService, UserService>();
+        builder.Services.AddScoped<IThreadService, ThreadService>();
+        builder.Services.AddScoped<IThreadLikeService, ThreadLikeService>();
         builder.Services.AddScoped<ICommentLikeService, CommentLikeService>();
         builder.Services.AddScoped<ICommentService, CommentService>();
         builder.Services.AddScoped<IEmailSender,EmailSender>();
